@@ -1,0 +1,17 @@
+.aws/
+.bash_history
+.bash_logout
+.bash_profile
+.bashrc
+.cache/
+.ssh/
+.viminfo
+.vscode-server/
+__pycache__/
+bin/
+ccdb.py
+lib/
+lib64
+pyvenv.cfg
+*.out
+*.mp4
