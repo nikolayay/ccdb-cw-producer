@@ -20,16 +20,27 @@ class NumpyEncoder(json.JSONEncoder):
 # get the video stream
 s3 = boto3.client('s3')
 url = s3.generate_presigned_url('get_object', Params={"Bucket":'ccdb-cw-bucket', "Key":'videos/video.mp4'})
-print(url)
+if url == None:
+    print("Error: renew s3 creds")
+    sys.exit()
+
+
 count = 0
 
-while True:
-    # ! this is not freed, might be problematic 
-    reader = cv2.VideoCapture(url)
-    # single (linear?) producer
-    producer = KafkaProducer(bootstrap_servers='172.31.76.215')
+# single (linear?) producer
+producer = KafkaProducer(bootstrap_servers='172.31.76.215')
 
-    if (producer.bootstrap_connected()):
+while True:
+    try:
+
+        # ! this is not freed, might be problematic 
+        reader = cv2.VideoCapture(url)
+
+        if not reader.isOpened():
+            raise NameError('S3 creds probably outdated')
+
+        if not producer.bootstrap_connected():
+            raise NameError('producer cannot connect to cluster')
 
         for i in tqdm(range(int(reader.get(cv2.CAP_PROP_FRAME_COUNT)))):
             
@@ -46,11 +57,10 @@ while True:
             producer.send('slags-3', 
                         value=json.dumps({'index': i, 'frame': image}, cls=NumpyEncoder).encode('utf-8'), 
                         key='video.mp4'.encode('utf-8'))
-    else:
-        print('producer failed')
-        
-        # TODO restart here
-        sys.exit()
+
+    except NameError as e:
+        print(e)
+        sys.exit(1)
 
     # reset count to stream continiously
     reader.set(cv2.CAP_PROP_POS_FRAMES, 0)

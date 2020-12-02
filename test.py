@@ -19,13 +19,9 @@ while True:
         # assert(bytes(image) == image.tobytes())
 
 
-    #     producer.send('slags-3', 
-    #                   value=json.dumps({'index': i, 'frame': image}, cls=NumpyEncoder).encode('utf-8'), 
-    #                   key=None, partition=0)
-    #     producer.send('slags-3', 
-    #                   value=json.dumps({'index': i, 'frame': image}, cls=NumpyEncoder).encode('utf-8'), 
-    #                   key=None, partition=2)
-    #     time.sleep(0.01)
+        producer.send('frames', 
+                      value=json.dumps({'index': i, 'frame': image}, cls=NumpyEncoder).encode('utf-8'), 
+                      key='video.mp4'.encode('utf-8'))
     
     count += 1
     print("streamed vidoe %i times, restarting..." % count)
